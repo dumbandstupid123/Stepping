@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextStep - Healthcare Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-heart-circle-plus"></i>
+                    <span>NextStep</span>
+                </div>
+                <div class="header-info">
+                    <span class="location"><i class="fas fa-map-marker-alt"></i> Houston, TX</span>
+                    <span class="status">
+                        <span class="status-dot"></span>
+                        <span id="status-text">Connecting...</span>
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-content">
+                    <div class="quick-categories">
+                        <h3><i class="fas fa-filter"></i> Quick Categories</h3>
+                        <div id="categories-list" class="categories-grid">
+                            <!-- Categories will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="stats-panel">
+                        <h3><i class="fas fa-chart-bar"></i> System Stats</h3>
+                        <div class="stats-content" id="stats-content">
+                            <div class="stat-item">
+                                <span class="stat-number" id="total-resources">-</span>
+                                <span class="stat-label">Total Resources</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="total-categories">-</span>
+                                <span class="stat-label">Categories</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="emergency-help">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Emergency</h3>
+                        <div class="emergency-numbers">
+                            <div class="emergency-item">
+                                <strong>911</strong> - Medical Emergency
+                            </div>
+                            <div class="emergency-item">
+                                <strong>211</strong> - Social Services
+                            </div>
+                            <div class="emergency-item">
+                                <strong>988</strong> - Mental Health Crisis
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Chat Area -->
+            <main class="chat-area">
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <h2><i class="fas fa-stethoscope"></i> Clinical Resource Navigator</h2>
+                        <p>Evidence-based healthcare and social service recommendations for Houston</p>
+                    </div>
+                    <button class="clear-chat" id="clear-chat">
+                        <i class="fas fa-refresh"></i>
+                        New Session
+                    </button>
+                </div>
+
+                <div class="chat-container" id="chat-container">
+                    <div class="welcome-message">
+                        <div class="assistant-message">
+                            <div class="avatar">
+                                <i class="fas fa-user-md"></i>
+                            </div>
+                            <div class="message-content">
+                                <h3>Welcome to NextStep Healthcare Navigator</h3>
+                                <p><strong>Professional Healthcare Resource Directory for Houston, Texas</strong></p>
+                                
+                                <p>NextStep is a comprehensive healthcare navigation platform designed to connect patients with verified healthcare and social service providers throughout the Houston metropolitan area. Our system maintains real-time access to over 100 certified healthcare facilities and social service organizations.</p>
+                                
+                                <div class="service-categories">
+                                    <h4>Available Services:</h4>
+                                    <div class="services-grid">
+                                        <div class="service-item">
+                                            <span class="service-icon">🏥</span>
+                                            <span>Primary & Specialty Care</span>
+                                        </div>
+                                        <div class="service-item">
+                                            <span class="service-icon">🧠</span>
+                                            <span>Mental Health Services</span>
+                                        </div>
+                                        <div class="service-item">
+                                            <span class="service-icon">🍽️</span>
+                                            <span>Nutrition Assistance</span>
+                                        </div>
+                                        <div class="service-item">
+                                            <span class="service-icon">🏠</span>
+                                            <span>Housing & Emergency Services</span>
+                                        </div>
+                                        <div class="service-item">
+                                            <span class="service-icon">💊</span>
+                                            <span>Substance Abuse Treatment</span>
+                                        </div>
+                                        <div class="service-item">
+                                            <span class="service-icon">🦷</span>
+                                            <span>Dental & Vision Care</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="professional-notice">
+                                    <p><strong>Clinical Notice:</strong> Please describe your healthcare needs or service requirements. Our system will provide evidence-based recommendations with verified contact information, insurance acceptance details, and availability status.</p>
+                                    
+                                    <p><em>For medical emergencies, please call 911 immediately. For crisis intervention, contact 988 (Suicide & Crisis Lifeline).</em></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-container">
+                        <!-- Voice Mode Toggle -->
+                        <div class="voice-mode-toggle">
+                            <button id="voice-mode-btn" class="voice-mode-button">
+                                <i class="fas fa-microphone"></i>
+                                <span>Start Voice Conversation</span>
+                            </button>
+                            <div class="voice-status" id="voice-status">
+                                <span class="voice-indicator" id="voice-indicator"></span>
+                                <span class="voice-text" id="voice-text">Click to start talking</span>
+                            </div>
+                        </div>
+
+                        <!-- Voice Tone Selector -->
+                        <div class="voice-tone-selector" id="voice-tone-selector" style="display: none;">
+                            <label for="voice-tone-select" class="voice-tone-label">
+                                <i class="fas fa-volume-up"></i>
+                                Voice Tone:
+                            </label>
+                            <select id="voice-tone-select" class="voice-tone-select">
+                                <option value="professional">🏥 Clinical & Professional (Default)</option>
+                                <option value="caring">💙 Empathetic & Supportive</option>
+                                <option value="calm">🧘 Calm & Therapeutic</option>
+                                <option value="friendly">👥 Collaborative & Approachable</option>
+                                <option value="energetic">⚡ Motivational & Encouraging</option>
+                                <option value="gentle">🌸 Gentle & Reassuring</option>
+                            </select>
+                        </div>
+
+                        <!-- Traditional Text Input -->
+                        <div class="input-wrapper" id="text-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="message-input" 
+                                placeholder="Describe your healthcare needs or service requirements..."
+                                maxlength="500"
+                            >
+                            <button id="send-button" class="send-button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+
+                        <!-- Voice Controls (hidden by default) -->
+                        <div class="voice-controls" id="voice-controls" style="display: none;">
+                            <button id="voice-listen-btn" class="voice-control-btn">
+                                <i class="fas fa-microphone"></i>
+                                <span>Tap to Speak</span>
+                            </button>
+                            <button id="voice-stop-btn" class="voice-control-btn stop">
+                                <i class="fas fa-stop"></i>
+                                <span>Stop Speaking</span>
+                            </button>
+                            <button id="voice-exit-btn" class="voice-control-btn exit">
+                                <i class="fas fa-keyboard"></i>
+                                <span>Switch to Typing</span>
+                            </button>
+                        </div>
+
+                        <div class="input-suggestions" id="input-suggestions">
+                            <span class="suggestion" data-text="I require mental health counseling services">Mental Health Services</span>
+                            <span class="suggestion" data-text="I need assistance with food security and nutrition programs">Nutrition Assistance</span>
+                            <span class="suggestion" data-text="I require emergency housing services">Emergency Housing</span>
+                            <span class="suggestion" data-text="I need affordable dental care services">Dental Services</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Loading overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-spinner">
+                <i class="fas fa-heartbeat"></i>
+                <p>Finding resources...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html> 

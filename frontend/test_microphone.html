@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microphone Permission Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+        .steps {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .steps li {
+            margin: 5px 0;
+        }
+        #permissionStatus {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Microphone Permission Test</h1>
+        <p>This page will help you fix the "Speech recognition error: not-allowed" issue.</p>
+        
+        <button onclick="testMicrophonePermission()">Test Microphone Access</button>
+        <button onclick="testSpeechRecognition()">Test Speech Recognition</button>
+        <button onclick="showPermissionHelp()">Show Permission Help</button>
+        
+        <div id="permissionStatus"></div>
+        
+        <div id="permissionHelp" style="display: none;">
+            <div class="steps">
+                <h3>📋 How to Grant Microphone Permission:</h3>
+                
+                <h4>🌐 Chrome/Edge:</h4>
+                <ol>
+                    <li>Look for a <strong>microphone icon</strong> in the address bar (left side)</li>
+                    <li>Click on it and select <strong>"Allow"</strong></li>
+                    <li>Or go to Settings → Privacy & Security → Site Settings → Microphone</li>
+                    <li>Add <code>http://localhost:8000</code> to allowed sites</li>
+                </ol>
+                
+                <h4>🍎 Safari:</h4>
+                <ol>
+                    <li>Go to <strong>Safari</strong> → <strong>Settings</strong> → <strong>Websites</strong> → <strong>Microphone</strong></li>
+                    <li>Set localhost to <strong>"Allow"</strong></li>
+                    <li>Or look for microphone permission popup when you test</li>
+                </ol>
+                
+                <h4>🔒 Firefox:</h4>
+                <ol>
+                    <li>Look for microphone icon in address bar</li>
+                    <li>Click and select <strong>"Allow"</strong></li>
+                    <li>Check about:preferences#privacy for microphone settings</li>
+                </ol>
+            </div>
+            
+            <div class="status warning">
+                <strong>⚠️ Important:</strong> Some browsers require HTTPS for microphone access. 
+                If HTTP doesn't work, try the HTTPS version: <code>python3 run_nextstep_https.py</code>
+            </div>
+        </div>
+        
+        <div id="httpsInfo" style="display: none;">
+            <div class="status info">
+                <h3>🔐 HTTPS Solution:</h3>
+                <p>Modern browsers often require HTTPS for microphone access. Run this command to start with HTTPS:</p>
+                <code style="background: #f3f4f6; padding: 10px; display: block; margin: 10px 0; border-radius: 3px;">
+                    python3 run_nextstep_https.py
+                </code>
+                <p><small>Note: You'll see a security warning for the self-signed certificate - click "Advanced" → "Proceed to localhost"</small></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(message, type) {
+            const statusDiv = document.getElementById('permissionStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            statusDiv.style.display = 'block';
+        }
+
+        async function testMicrophonePermission() {
+            updateStatus('🔍 Testing microphone access...', 'info');
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                updateStatus('✅ Microphone access granted! Voice features should work.', 'success');
+                
+                // Stop the stream
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Show additional info
+                setTimeout(() => {
+                    updateStatus('✅ Microphone works! You can now use voice features in NextStep. Return to the main app and try voice mode.', 'success');
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Microphone error:', error);
+                
+                if (error.name === 'NotAllowedError') {
+                    updateStatus('❌ Microphone access denied. Please grant permission and try again.', 'error');
+                    showPermissionHelp();
+                } else if (error.name === 'NotFoundError') {
+                    updateStatus('❌ No microphone found. Please check your hardware.', 'error');
+                } else if (error.name === 'NotSupportedError') {
+                    updateStatus('❌ Microphone not supported in this browser.', 'error');
+                    document.getElementById('httpsInfo').style.display = 'block';
+                } else {
+                    updateStatus(`❌ Microphone error: ${error.message}`, 'error');
+                    document.getElementById('httpsInfo').style.display = 'block';
+                }
+            }
+        }
+
+        function testSpeechRecognition() {
+            updateStatus('🔍 Testing speech recognition...', 'info');
+            
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                updateStatus('❌ Speech recognition not supported in this browser.', 'error');
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.onstart = () => {
+                updateStatus('🎤 Speech recognition started! Say something...', 'success');
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                updateStatus(`✅ Speech recognition works! You said: "${transcript}"`, 'success');
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                
+                if (event.error === 'not-allowed') {
+                    updateStatus('❌ Speech recognition blocked: Microphone permission denied!', 'error');
+                    showPermissionHelp();
+                    document.getElementById('httpsInfo').style.display = 'block';
+                } else if (event.error === 'no-speech') {
+                    updateStatus('⚠️ No speech detected. Try speaking louder or closer to the microphone.', 'warning');
+                } else {
+                    updateStatus(`❌ Speech recognition error: ${event.error}`, 'error');
+                    if (event.error.includes('network') || event.error.includes('service')) {
+                        document.getElementById('httpsInfo').style.display = 'block';
+                    }
+                }
+            };
+            
+            recognition.onend = () => {
+                console.log('Speech recognition ended');
+            };
+            
+            try {
+                recognition.start();
+            } catch (error) {
+                updateStatus(`❌ Failed to start speech recognition: ${error.message}`, 'error');
+                showPermissionHelp();
+            }
+        }
+
+        function showPermissionHelp() {
+            document.getElementById('permissionHelp').style.display = 'block';
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            updateStatus('👋 Ready to test microphone permissions. Click "Test Microphone Access" to begin.', 'info');
+        });
+    </script>
+</body>
+</html> 

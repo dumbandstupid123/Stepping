@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Synthesis Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .output {
+            background: #f3f4f6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .success {
+            color: #10b981;
+        }
+        .info {
+            color: #3b82f6;
+        }
+        select {
+            padding: 5px;
+            margin: 5px;
+            border-radius: 3px;
+            border: 1px solid #d1d5db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Voice Synthesis Test</h1>
+        <p>This page tests speech synthesis functionality to help diagnose voice issues.</p>
+        
+        <div>
+            <button onclick="listVoices()">List Available Voices</button>
+            <button onclick="testSimpleSpeech()">Test Simple Speech</button>
+            <button onclick="testComplexSpeech()">Test Complex Speech</button>
+            <button onclick="stopSpeech()">Stop Speech</button>
+        </div>
+        
+        <div>
+            <label>Select Voice: </label>
+            <select id="voiceSelect"></select>
+            <button onclick="testSelectedVoice()">Test Selected Voice</button>
+        </div>
+        
+        <div>
+            <label>Rate: </label>
+            <input type="range" id="rateSlider" min="0.1" max="2" value="1" step="0.1">
+            <span id="rateValue">1</span>
+        </div>
+        
+        <div>
+            <label>Pitch: </label>
+            <input type="range" id="pitchSlider" min="0" max="2" value="1" step="0.1">
+            <span id="pitchValue">1</span>
+        </div>
+        
+        <div>
+            <label>Volume: </label>
+            <input type="range" id="volumeSlider" min="0" max="1" value="0.8" step="0.1">
+            <span id="volumeValue">0.8</span>
+        </div>
+        
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        const synthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : 'info';
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(message);
+        }
+        
+        function listVoices() {
+            const voices = synthesis.getVoices();
+            log(`Found ${voices.length} voices:`);
+            
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+            
+            voices.forEach((voice, index) => {
+                const voiceInfo = `${index}: ${voice.name} (${voice.lang}) ${voice.localService ? '[Local]' : '[Remote]'}`;
+                log(voiceInfo);
+                
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = voiceInfo;
+                voiceSelect.appendChild(option);
+            });
+            
+            if (voices.length === 0) {
+                log('No voices available! This may be why speech synthesis is failing.', 'error');
+            }
+        }
+        
+        function testSimpleSpeech() {
+            if (!synthesis) {
+                log('Speech synthesis not supported!', 'error');
+                return;
+            }
+            
+            stopSpeech();
+            
+            const utterance = new SpeechSynthesisUtterance('Hello, this is a simple test.');
+            
+            utterance.onstart = () => log('Speech started', 'success');
+            utterance.onend = () => log('Speech ended', 'success');
+            utterance.onerror = (event) => log(`Speech error: ${event.error}`, 'error');
+            
+            try {
+                synthesis.speak(utterance);
+                log('Simple speech test initiated');
+            } catch (error) {
+                log(`Failed to start speech: ${error}`, 'error');
+            }
+        }
+        
+        function testComplexSpeech() {
+            const complexText = "This is a longer test message with multiple sentences. It includes various punctuation marks, numbers like 123, and should test the speech synthesis engine more thoroughly. Can you hear this clearly?";
+            
+            testSpeechWithText(complexText);
+        }
+        
+        function testSelectedVoice() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedIndex = parseInt(voiceSelect.value);
+            const voices = synthesis.getVoices();
+            
+            if (selectedIndex >= 0 && selectedIndex < voices.length) {
+                const selectedVoice = voices[selectedIndex];
+                const text = `Testing voice: ${selectedVoice.name}. This is how I sound.`;
+                testSpeechWithText(text, selectedVoice);
+            } else {
+                log('No voice selected', 'error');
+            }
+        }
+        
+        function testSpeechWithText(text, voice = null) {
+            if (!synthesis) {
+                log('Speech synthesis not supported!', 'error');
+                return;
+            }
+            
+            stopSpeech();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            if (voice) {
+                utterance.voice = voice;
+                log(`Using voice: ${voice.name}`);
+            }
+            
+            utterance.rate = parseFloat(document.getElementById('rateSlider').value);
+            utterance.pitch = parseFloat(document.getElementById('pitchSlider').value);
+            utterance.volume = parseFloat(document.getElementById('volumeSlider').value);
+            
+            log(`Settings - Rate: ${utterance.rate}, Pitch: ${utterance.pitch}, Volume: ${utterance.volume}`);
+            
+            utterance.onstart = () => log('Speech started', 'success');
+            utterance.onend = () => {
+                log('Speech ended', 'success');
+                currentUtterance = null;
+            };
+            utterance.onerror = (event) => {
+                log(`Speech error: ${event.error} - ${event.type}`, 'error');
+                currentUtterance = null;
+            };
+            
+            try {
+                currentUtterance = utterance;
+                synthesis.speak(utterance);
+                log('Speech test initiated with custom settings');
+            } catch (error) {
+                log(`Failed to start speech: ${error}`, 'error');
+                currentUtterance = null;
+            }
+        }
+        
+        function stopSpeech() {
+            if (synthesis) {
+                synthesis.cancel();
+                currentUtterance = null;
+                log('Speech stopped/cancelled');
+            }
+        }
+        
+        // Update slider values
+        document.getElementById('rateSlider').oninput = function() {
+            document.getElementById('rateValue').textContent = this.value;
+        };
+        
+        document.getElementById('pitchSlider').oninput = function() {
+            document.getElementById('pitchValue').textContent = this.value;
+        };
+        
+        document.getElementById('volumeSlider').oninput = function() {
+            document.getElementById('volumeValue').textContent = this.value;
+        };
+        
+        // Initialize on load
+        if (synthesis) {
+            if (synthesis.getVoices().length === 0) {
+                synthesis.addEventListener('voiceschanged', () => {
+                    log('Voices loaded');
+                    listVoices();
+                });
+            } else {
+                listVoices();
+            }
+            
+            log('Speech synthesis initialized');
+        } else {
+            log('Speech synthesis not supported in this browser!', 'error');
+        }
+    </script>
+</body>
+</html> 
